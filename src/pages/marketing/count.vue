@@ -9,12 +9,13 @@
 import {useStore} from 'vuex';
 import {computed} from 'vue';
 const store = useStore();
-const double = computed(() => store.getters.double);
-const name = computed(() => store.state.name);
+console.log('store111: ', store);
+const double = computed(() => store.getters['other/double']);
+const name = computed(() => store.state.other.name);
 function add () {
-    store.commit('add');
+    store.commit('other/add');
 }
 function getName() {
-    store.dispatch('changeName');
+    store.dispatch('other/changeName');
 }
 </script>

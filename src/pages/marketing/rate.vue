@@ -1,6 +1,7 @@
 <template>
     <section class="user-satisfied">
         <slot name="title"></slot>
+
         <nav class="fontTheme">
             <span class="star" v-for="index in whiteStarCount" :key="index" @click="starClick(index)">&#9733;</span>
             <span class="star black-star" v-for="index in blackStarCount" :key="index" @click="starClick(index)">&#9734;</span>
@@ -9,7 +10,7 @@
 </template>
 <script setup lang="ts">
     import { ref, Ref, watchEffect} from 'vue';
-    import {generateArray} from '../utils/generate-array';
+    import { generateArray } from '../utils/generate-array';
     const props = defineProps({
         modelValue: {
             type: Number,
@@ -18,7 +19,7 @@
         },
         theme: {
             type: String,
-            default: 'orange'
+            default: "orange"
         }
     });
     const whiteStarCount:Ref<number[]> = ref([]), blackStarCount:Ref<number[]> = ref([]);
@@ -32,7 +33,10 @@
     }
 </script>
 <style lang="less">
+
+
 .user-satisfied{
+
     .star{
         font-size: 30px
     }
