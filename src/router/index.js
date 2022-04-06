@@ -1,21 +1,20 @@
-import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router';
-import Home from '../pages/home/index.vue';
-import Marketing from '../pages/marketing/index.vue'
-const routes = [{
-    path: '/',
-    redirect: '/task'
-},{
-    path: '/task',
-    name: 'task',
-    component: Home,
-}, {
-    path: '/marketing',
-    name: 'marketing',
-    component: Marketing
-}]
+import { createRouter, createWebHistory } from 'vue-router';
+import { routes } from './routes.js';
+// import {useStore} from 'vuex';
+import store from '@/store/index.js';
+// const store = useStore();
+console.log('store: ', store);
 
 const router = new createRouter({
     history: createWebHistory(),
     routes
+});
+
+router.beforeEach(async (to, from) => {
+    const token = store.getters['user/token'];
+    if (to.meta.auth && !token && !to.path.includes('/login')) {
+        return '/login';
+    }
+    return true;
 });
 export default router;

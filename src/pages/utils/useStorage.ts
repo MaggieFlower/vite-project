@@ -11,3 +11,6 @@ export function getStorage(name: string, initValue: []) {
     });
     return data
 }
+export function getToken() {
+    return localStorage.getItem('Token');
+}
