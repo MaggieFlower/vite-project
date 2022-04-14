@@ -3,6 +3,10 @@
         <router-link to="/task">任务</router-link>
         <br/>
         <router-link to="/marketing">营销页面</router-link>
+        <br/>
+        <router-link to="/layout">mg布局</router-link>
+         <br/>
+        <router-link to="/transform">动画</router-link>
     </nav>
 </template>
 <style lang="less">
@@ -13,6 +17,7 @@
   justify-content: center;
   flex-basis: 150px;
   min-width: 150px;
+  height: 100%;
   background-color: #f0f2f5;
 }
 </style>
