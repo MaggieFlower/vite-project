@@ -16,14 +16,18 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.1s ease;
+  transition: all .3s ease;
 }
 
 .fade-enter-from{
   opacity: 0;
+
   transform: translateX(-100%);
 }
 .fade-leave-to{

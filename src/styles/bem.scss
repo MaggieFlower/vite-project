@@ -1,0 +1,31 @@
+$namespace: 'mg-';
+@mixin b($block) {
+    $B: $namespace + $block !global;
+    .#{$B} {
+        @content;
+    }
+}
+$state-prefix: 'is-';
+@mixin when($state) {
+    @at-root {
+        // scss的插值语法: #{}
+        // https://sass-lang.com/documentation/interpolation
+        &.#{$state-prefix + $state} {
+            @content
+        }
+    }
+};
+
+@mixin statusOf($state) {
+    @at-root {
+        // scss的插值语法: #{}
+        // https://sass-lang.com/documentation/interpolation
+        &.#{$state-prefix + '-' + $state} {
+            color: red;
+            @content
+        }
+    }
+}
+
+
+

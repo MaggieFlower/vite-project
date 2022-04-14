@@ -5,9 +5,9 @@ export function todoOperate() {
     const count = ref(3);
     const showList = ref(false);
     const selectOptions = getStorage('task-list-v1', []);
-    const handleKeydown = (el:KeyboardEvent):Promise<resolve> => {
+    const handleKeydown = function (el:KeyboardEvent){
         if (el.key === 'Enter' && el.which === 13) {
-            return new Promise<boolean>((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 if (!inputValue.value) {
                     resolve(false);
                     return;
