@@ -10,7 +10,7 @@
 </template>
 <script setup lang="ts">
     import { ref, Ref, watchEffect} from 'vue';
-    import { generateArray } from '../utils/generate-array';
+    import { generateArray } from '@/utils/generate-array';
     const props = defineProps({
         modelValue: {
             type: Number,

@@ -1,26 +1,25 @@
 import axios from 'axios';
-import store from '../store/index';
 import { message } from 'ant-design-vue';
 message.config({
-    maxCount: 1
+    maxCount: 1,
 });
 const service = axios.create({
     baseURL: 'http://localhost:3000/',
     timeout: 5000,
-    withCredentials: true
+    withCredentials: true,
 });
 
 service.interceptors.request.use(
-    config => {
+    (config) => {
         return config;
     },
-    error => {
+    (error) => {
         return Promise.reject(error);
     }
 );
 
 service.interceptors.response.use(
-    response => {
+    (response) => {
         const res = response.data;
         console.log('res: ', res);
         if (res.code !== 200) {
@@ -29,7 +28,7 @@ service.interceptors.response.use(
         }
         return res;
     },
-    error => {
+    (error) => {
         console.log('接口信息报错error', error);
         return Promise.reject(error);
     }

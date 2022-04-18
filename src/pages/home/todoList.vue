@@ -49,7 +49,7 @@ import {
   defineComponent,
 } from 'vue';
 import { todoOperate } from './todo';
-import { getStorage } from '../utils/useStorage';
+import { getStorage } from '@/utils/useStorage';
 import { CloseCircleOutlined } from '@ant-design/icons-vue';
 // defineProps<{ msg: string }>();
 
