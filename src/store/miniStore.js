@@ -4,7 +4,7 @@ const STORE_KEY = '__store__';
 class Store {
     constructor (options) {
         this._state = reactive({
-            data: options.state()
+            data: options.state(),
         });
         this._mutations = options.mutations;
     }

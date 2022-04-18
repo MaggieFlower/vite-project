@@ -12,14 +12,14 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { getColor } from "../utils/color";
-import { defineComponent, ref, watch } from "vue";
-import Rate from "./rate.vue"
-import Count from "./count.vue";
-const titleColor = ref<string>("");
-const score = ref<number>(0);
-function handleClick() {
-  titleColor.value = getColor().color.value;
+import { getColor } from '@/utils/color';
+import { defineComponent, ref, watch } from 'vue';
+import Rate from './rate.vue';
+import Count from './count.vue';
+const titleColor = ref < string > ('');
+const score = ref < number > (0);
+function handleClick () {
+    titleColor.value = getColor().color.value;
 }
 </script>
 <style>

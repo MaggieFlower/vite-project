@@ -5,7 +5,7 @@ import { other } from './modules/other.js';
 const store = createStore({
     modules: {
         other,
-        user
-    }
+        user,
+    },
 });
 export default store;

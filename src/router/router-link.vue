@@ -4,7 +4,7 @@
     </component>
 </template>
 <script setup lang="ts">
-import { useRouter, createBindEvent } from './miniRouter.js';
+import { useRouter } from './miniRouter.js';
 import { defineProps, ref } from 'vue';
 const props = defineProps({
     to: { type: String, required: true },

@@ -10,7 +10,7 @@ function createRouter (options) {
     return new Router(options);
 }
 
-function useRouter (app) {
+function useRouter () {
     return inject(__ROUTER_KEY__);
 }
 
@@ -21,7 +21,7 @@ function createWebHashHistory () {
     return {
         bindEvent,
         url: window.location.hash.slice('1') || '/',
-        type: 'hash'
+        type: 'hash',
     };
 }
 
@@ -36,7 +36,7 @@ function createWebHistory () {
         url: window.location.pathname,
         type: 'history',
         popEvent,
-        pushEvent
+        pushEvent,
     };
 }
 
@@ -46,7 +46,10 @@ class Router {
         this.routes = options.routes;
         this.current = ref(this.history.url);
         this.history.bindEvent(() => {
-            const path = this.history.type === 'hash' ? window.location.hash.slice(1) : window.location.pathname;
+            const path =
+                this.history.type === 'hash'
+                    ? window.location.hash.slice(1)
+                    : window.location.pathname;
             console.log('window.location.hash: , ', path);
             this.current.value = path;
         });
@@ -54,9 +57,15 @@ class Router {
 
     install (app) {
         app.provide(__ROUTER_KEY__, this);
-        app.component('router-view', RouterView);
-        app.component('router-link', RouterLink);
+        app.component('RouterView', RouterView);
+        app.component('RouterLink', RouterLink);
     }
 }
 
-export { createRouter, createWebHashHistory, useRouter, createWebHistory, createBindEvent };
+export {
+    createRouter,
+    createWebHashHistory,
+    useRouter,
+    createWebHistory,
+    createBindEvent,
+};

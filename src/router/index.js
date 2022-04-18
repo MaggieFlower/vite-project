@@ -7,10 +7,10 @@ console.log('store: ', store);
 
 const router = new createRouter({
     history: createWebHistory(),
-    routes
+    routes,
 });
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
     const token = store.getters['user/token'];
     if (to.meta.auth && !token && !to.path.includes('/login')) {
         return '/login';

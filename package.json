@@ -22,12 +22,15 @@
         "ant-design-vue": "^2.2.8",
         "async-validator": "^4.0.7",
         "axios": "^0.26.1",
+        "mitt": "^3.0.0",
         "vue": "^3.2.25",
         "vue-router": "^4.0.12",
         "vuex": "^4.0.2"
     },
     "devDependencies": {
         "@babel/eslint-parser": "^7.17.0",
+        "@typescript-eslint/eslint-plugin": "^5.19.0",
+        "@typescript-eslint/parser": "^5.19.0",
         "@vitejs/plugin-vue": "^2.2.0",
         "eslint": "^8.11.0",
         "eslint-config-standard": "^16.0.3",
