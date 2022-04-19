@@ -8,6 +8,8 @@ module.exports = {
     },
     extends: [
         'standard',
+        'plugin:@typescript-eslint/eslint-recommended',
+        'plugin:@typescript-eslint/recommended'
     ],
     plugins: [
         '@typescript-eslint',
@@ -19,15 +21,15 @@ module.exports = {
         ecmaVersion: 'latest',
         sourceType: 'module',
         // parser字段需要在parserOptions，写在顶层会报错：是实验特性***
-        parser: '@babel/eslint-parser',
-        // parse: '@typescript-eslint/parser',
+        // parser: '@babel/eslint-parser',
+        parse: '@typescript-eslint/parser',
         requireConfigFile: false,
     },
     rules: {
-        'no-unused-vars': [
-            'error',
-            // we are only using this rule to check for unused arguments since TS
-            // catches unused variables but not args.
+        'no-console': 2,
+        // 关闭基础的eslint校验,启用ts-lint校验获取准确的报错信息
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': ['error',
             { varsIgnorePattern: '.*', args: 'none' },
         ],
         // 允许let person = new constructor()

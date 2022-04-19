@@ -3,7 +3,6 @@ import { routes } from './routes.js';
 // import {useStore} from 'vuex';
 import store from '@/store/index.js';
 // const store = useStore();
-console.log('store: ', store);
 
 const router = new createRouter({
     history: createWebHistory(),
