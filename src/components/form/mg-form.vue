@@ -7,6 +7,41 @@
 import { PropType, provide, ref } from 'vue';
 import { Rules } from 'async-validator';
 import { FormItem, key } from './type';
+import {emitter} from '@/utils/emitter';
+
+// props注册
+const props = defineProps({
+    model: {type: Object, required: true},
+    rules: {type: Object as PropType<Rules>}
+})
+
+// 全局注册key
+provide(key, {
+    model: props.model,
+    rules: props.rules
+})
+
+const items = ref<FormItem[]>([])
+
+emitter.on('addFormItem', (item:{validate: () => Promise<any>}) => {
+    items.value.push(item);
+})
+
+function validate(cb: (isValid: boolean) => void) {
+    const tasks = items.value.map(item => item.validate());
+    Promise.all(tasks).then(() => {
+        cb(true);
+    }).catch(() => {
+        cb(false);
+    });
+}
+
+defineExpose({
+    validate
+})
+
+
+
 
 </script>
 <script lang='ts'>

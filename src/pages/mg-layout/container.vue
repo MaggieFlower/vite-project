@@ -44,7 +44,6 @@ export default {
     display: flex;
     flex-direction: row;
     box-sizing: border-box;
-    background: lightcyan;
     flex:1;
     height: 100%;
     @include when(vertical) {

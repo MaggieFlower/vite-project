@@ -35,4 +35,10 @@ export const routes = [
         name: 'transform',
         component: () => import('@/pages/transform/layout.vue'),
     },
+    {
+        path: '/form',
+        name: 'form',
+        // 异步加载必须加.vue后缀
+        component: () => import('@/pages/mg-form/index.vue'),
+    },
 ];
