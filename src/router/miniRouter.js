@@ -50,7 +50,6 @@ class Router {
                 this.history.type === 'hash'
                     ? window.location.hash.slice(1)
                     : window.location.pathname;
-            console.log('window.location.hash: , ', path);
             this.current.value = path;
         });
     }

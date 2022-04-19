@@ -7,6 +7,8 @@
         <router-link to="/layout">mg布局</router-link>
          <br/>
         <router-link to="/transform">动画</router-link>
+        <br/>
+        <router-link to="/transform">表单</router-link>
     </nav>
 </template>
 <style lang="less">

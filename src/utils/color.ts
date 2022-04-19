@@ -1,9 +1,9 @@
 import { ref, Ref } from 'vue';
-
-type returnValue = {
-    color: Ref<string>
-};
-export function getColor ():returnValue {
+/* eslint-disabled */
+interface returnValue {
+  color: Ref<string>
+}
+export function getColor (): returnValue {
     const color = ref<string>('');
     const r = Math.ceil(Math.random() * 255);
     const g = Math.ceil(Math.random() * 255);

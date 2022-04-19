@@ -1,4 +1,4 @@
-export function generateArray (start:number, end:number):number[] {
+export function generateArray (start: number, end: number): number[] {
     if (start > end) {
         return [];
     }
