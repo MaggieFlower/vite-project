@@ -13,6 +13,5 @@ export default {
 @import '@/styles/bem.scss';
 
 @include b(header) {
-    height: 100px;
 }
 </style>
