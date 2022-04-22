@@ -1,10 +1,16 @@
 import Home from '../pages/home/index.vue';
 import Marketing from '../pages/marketing/index.vue';
 import Login from '../pages/login/index.vue';
+import { RouteRecordRaw } from 'vue-router';
 
-export const routes = [
+// interface  extends用于有确认类型
+type  RouteRecord = RouteRecordRaw & {
+  hidden?: boolean,
+}
+
+export const routes:RouteRecord[] = [
     {
-        path: '/',
+        path: '',
         name: 'root',
         redirect: '/marketing',
     },

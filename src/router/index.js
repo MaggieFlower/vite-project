@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { routes } from './routes.js';
+import { routes } from './routes.ts';
 // import {useStore} from 'vuex';
 import store from '@/store/index.js';
 // const store = useStore();

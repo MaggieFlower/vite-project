@@ -1,16 +1,26 @@
 <template>
     <nav class="container-menu">
-        <router-link to="/task">任务</router-link>
-        <br/>
+        <template v-for="route in allPath"  :key="route.name">
+          <router-link  :to="route.path">{{route.name}}</router-link>
+          <br />
+        </template>
+<!-- 
         <router-link to="/marketing">营销页面</router-link>
         <br/>
         <router-link to="/layout">mg布局</router-link>
          <br/>
         <router-link to="/transform">动画</router-link>
         <br/>
-        <router-link to="/transform">表单</router-link>
+        <router-link to="/transform">表单</router-link> -->
     </nav>
 </template>
+<script setup lang="ts">
+import {routes} from '@/src/router/routes.ts';
+import { RouteRecordRaw } from 'vue-router';
+
+
+const allPath = routes.filter((route:RouteRecordRaw) => route.path);
+</script>
 <style lang="less">
 .container-menu{
   display: flex;
