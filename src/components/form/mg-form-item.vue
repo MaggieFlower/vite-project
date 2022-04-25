@@ -1,8 +1,8 @@
 <template>
 <section class="mg-form-item">
-    <label v-if="label">{{label}}</label>
+    <label v-if="label" class="mg-form-item--label">{{label}}</label>
     <slot/>
-    <p v-if="error" class="mg-form-item-error">
+    <p :class="[error ? 'mg-form-item--error': 'mg-form-item--hide-error']">
         {{error}}
     </p>
 </section>
@@ -36,9 +36,9 @@ onMounted(() => {
     if (props.prop) {
         emitter.on("validate", () => {
             validate();
-        })
+        });
+        emitter.emit('addFormItem', o);
     }
-    emitter.emit('addFormItem', o);
 })
 
 function validate() {
@@ -51,7 +51,11 @@ function validate() {
     // props.prop指定的value
     const value = formData.model[props.prop]
     const schema = new Schema({[props.prop]: rules});
-    return schema.validate({[props.prop]: rules}, (errors) => {
+    return schema.validate({[props.prop]: value}, { firstFields: true },(errors, fields) => {
+        // console.log('fields: ', fields);
+        // console.log('rules: ', rules);
+        console.log('props.prop: ', props.prop);
+        // console.log('errors: ', errors);
         error.value = errors ? (errors[0].message || "校验错误") : ''
     })
 }
@@ -68,6 +72,22 @@ export default {
 
 <style lang='scss'>
 @import '@/styles/bem.scss';
-@include b('formItem'){
+@import '@/styles/var.scss';
+@include b('form-item'){
+    &--label{
+        padding-bottom: 8px;
+        display: inline-block;
+    }
+    &--error{
+        color: $errorColor;
+        margin-bottom: 0px;
+        opacity: 1;
+        height: 22px;
+    }
+    &--hide-error{
+        margin-bottom: 0px;
+        opacity: 0;
+        height: 22px;
+    }
 }
 </style>
