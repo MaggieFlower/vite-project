@@ -36,6 +36,7 @@ function validate(cb: (isValid: boolean) => void) {
     });
 }
 
+// 给组件直接调用refs.validate的时候使用
 defineExpose({
     validate
 })
