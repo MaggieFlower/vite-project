@@ -10,11 +10,13 @@ import { defineProps } from 'vue';
 interface Props {
     title: string;
     content: string;
+    modelValue: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     title: '弹窗',
     content: '这是一个弹窗',
+    modelValue: false,
 });
 </script>
 
