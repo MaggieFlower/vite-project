@@ -7,7 +7,7 @@ module.exports = {
         withDefaults: 'readonly',
     },
     extends: [
-        'standard',
+        // 'standard',
         'plugin:@typescript-eslint/eslint-recommended',
         'plugin:@typescript-eslint/recommended'
     ],
@@ -43,5 +43,6 @@ module.exports = {
         'comma-dangle': ['error', 'only-multiline'],
         // 函数声明后带空格
         'space-before-function-paren': ['error', 'always'],
+        'no-undef': 'off'
     },
 };
