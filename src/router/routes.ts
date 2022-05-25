@@ -4,11 +4,11 @@ import Login from '../pages/login/index.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 // interface  extends用于有确认类型
-type  RouteRecord = RouteRecordRaw & {
-  hidden?: boolean,
-}
+type RouteRecord = RouteRecordRaw & {
+    hidden?: boolean;
+};
 
-export const routes:RouteRecord[] = [
+export const routes: RouteRecord[] = [
     {
         path: '',
         name: 'root',
@@ -46,5 +46,20 @@ export const routes:RouteRecord[] = [
         name: 'form',
         // 异步加载必须加.vue后缀
         component: () => import('@/pages/mg-form/index.vue'),
+    },
+    {
+        path: '/tree',
+        name: 'mgTree',
+        component: () => import('@/pages/mg-tree/index.vue'),
+    },
+    {
+        path: '/vscroll',
+        name: 'virtual-scroll',
+        component: () => import('@/pages/virtual-scroll/index.vue'),
+    },
+    {
+        path: '/proxy',
+        name: 'proxy',
+        component: () => import('@/pages/proxy/index.vue'),
     },
 ];

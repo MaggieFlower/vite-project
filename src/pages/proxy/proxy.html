@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <div>
+            <p class="proxy"></p>
+            <!-- <input type="input" placeholder="请输入你想要的文字" /> -->
+            <input type="button" value="改变依赖" />
+        </div>
+    </body>
+    <script>
+        // effect注册函数
+        let effectiveFunction;
+        function effect(fn) {
+            const effectFn = () => {
+                effectiveFunction = effectFn;
+                cleanup(effectFn);
+                fn();
+            };
+
+            effectFn.deps = [];
+            effectFn();
+        }
+
+        function cleanup(effectFn) {
+            // 这一步其实是将执行完的函数从依赖函数中清除，get的时候重新收集依赖，避免不使用的数据一直有响应式
+            for (let index = 0; index < effectFn.deps.length; index++) {
+                const dep = effectFn.deps[index];
+                dep.delete(effectFn);
+                console.log('cleanup dep: ', dep);
+            }
+
+            effectFn.deps.length = 0;
+        }
+
+        const bucket = new WeakMap();
+
+        const data = { flag: true, text: 'hello world' };
+        const proxyData = new Proxy(data, {
+            get(target, property) {
+                // 将target函数封装，使得依赖收集和值的获取逻辑上分离
+                track(target, property);
+                // effect应该是用户传进来的函数,那么名称不应该写死
+                // effectiveFunction && bucket.add(effectiveFunction);
+                return Reflect.get(target, property);
+            },
+            set(target, property, newVal) {
+                Reflect.set(target, property, newVal);
+                trigger(target, property);
+                return true;
+            },
+        });
+
+        function track(target, property) {
+            if (!effectiveFunction) return;
+
+            // 将需要使用响应数据的data存起来，value是一个Map，用来存储其属性对应的effect函数
+            let depsMap = bucket.get(target); // Map
+
+            if (!depsMap) {
+                // 很巧妙，用括号表达式对depsMap重新赋值，一行解决
+                bucket.set(target, (depsMap = new Map()));
+            }
+            // 查找target属性的property对应的effect函数，也就是我们需要收集的依赖
+            let dep = depsMap.get(property); // Set
+            if (!dep) {
+                depsMap.set(property, (dep = new Set()));
+            }
+            // console.log('属性依赖property: ', property);
+            dep.add(effectiveFunction);
+            effectiveFunction.deps.push(dep);
+        }
+
+        function trigger(target, property) {
+            const depsMap = bucket.get(target); // Map
+            if (!depsMap) return;
+            const effects = depsMap.get(property); // Set
+
+            // 执行依赖函数时，需要把依赖清空，重新建立依赖，避免产生多余的副作用函数函数
+            const newEffects = new Set(effects); // Set具有幂等性
+            newEffects.forEach((fn) => {
+                // console.log('property: ', property);
+                fn();
+            });
+        }
+    </script>
+    <script>
+        // import { proxyData, effect } from './reactive.ts';
+        const inputEl = document.querySelector('input');
+
+        inputEl.addEventListener('click', handleInputEvent);
+        const handleValue = () => {
+            const el = document.querySelector('.proxy');
+            el.innerHTML = proxyData.flag ? proxyData.text : 'no';
+        };
+
+        function handleInputEvent(event) {
+            // proxyData.text = event.target.value;
+            proxyData.flag = false;
+            proxyData.text = 'efwerwer';
+        }
+        effect(handleValue);
+    </script>
+</html>

@@ -7,14 +7,11 @@ module.exports = {
         withDefaults: 'readonly',
     },
     extends: [
-        'standard',
+        // 'standard',
         'plugin:@typescript-eslint/eslint-recommended',
-        'plugin:@typescript-eslint/recommended'
+        'plugin:@typescript-eslint/recommended',
     ],
-    plugins: [
-        '@typescript-eslint',
-        'prettier',
-    ],
+    plugins: ['@typescript-eslint', 'prettier'],
     parser: 'vue-eslint-parser',
     // parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -29,9 +26,12 @@ module.exports = {
         'no-console': 2,
         // 关闭基础的eslint校验,启用ts-lint校验获取准确的报错信息
         'no-unused-vars': 'off',
-        '@typescript-eslint/no-unused-vars': ['error',
+        '@typescript-eslint/no-unused-vars': [
+            'error',
             { varsIgnorePattern: '.*', args: 'none' },
         ],
+        'ban-ts-comment': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
         // 允许let person = new constructor()
         // 变量和构造器小写开头
         'new-cap': ['error', { newIsCap: false }],
@@ -43,5 +43,6 @@ module.exports = {
         'comma-dangle': ['error', 'only-multiline'],
         // 函数声明后带空格
         'space-before-function-paren': ['error', 'always'],
+        'no-undef': 'off',
     },
 };

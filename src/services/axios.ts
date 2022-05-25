@@ -21,8 +21,6 @@ service.interceptors.request.use(
 service.interceptors.response.use(
     (response) => {
         const res = response.data;
-        /* eslint-disable  no-console */
-        console.log('res: ', res);
         if (res.code !== 200) {
             message.error(res.message || '请求报错啦！');
             return res.message || 'Error';

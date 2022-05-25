@@ -1,11 +1,12 @@
 <template>
-  <nav class="container-menu">
-    <router-link
-      v-for="route in allPath"
-      :key="route.name"
-      :to="route.path"
-    >{{route.name}}</router-link>
-  </nav>
+    <nav class="container-menu">
+        <router-link
+            v-for="route in allPath"
+            :key="route.name"
+            :to="route.path"
+            >{{ route.name }}</router-link
+        >
+    </nav>
 </template>
 <script setup lang="ts">
 import { routes } from '@/router/routes.ts';
