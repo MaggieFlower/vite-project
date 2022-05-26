@@ -17,9 +17,16 @@ type Options = {
     lazy?: boolean;
 };
 
+const triggerType = {
+    ADD: 'ADD',
+    SET: 'SET',
+    DELETE: 'DELETE',
+};
 // effect注册函数
 let effectiveFunction: EffectFn;
 let effectStack: EffectFn[] = [];
+
+const ITERATE_KEY = Symbol();
 
 export function effect(fn: Effect, options?: Options) {
     const effectFn: EffectFn = () => {
@@ -65,20 +72,80 @@ function cleanup(effectFn: EffectFn) {
 const bucket = new WeakMap();
 
 const data: Data = { text: 'hello world', index: 1, name: 'maggie' };
-export const proxyData = new Proxy<Data>(data, {
-    get(target: object, property: string) {
-        // 将target函数封装，使得依赖收集和值的获取逻辑上分离
-        track(target, property);
-        // effect应该是用户传进来的函数,那么名称不应该写死
-        // effectiveFunction && bucket.add(effectiveFunction);
-        return Reflect.get(target, property);
-    },
-    set(target: Data, property: string, newVal: any): boolean {
-        Reflect.set(target, property, newVal);
-        trigger(target, property);
-        return true;
-    },
-});
+function readonly(obj: object, isShallow = false) {
+    return effective(obj, isShallow, true);
+}
+export function effective(obj: object, isShallow = false, isReadonly = false) {
+    return new Proxy(obj, {
+        get(target: object, property: string, receiver) {
+            // 增加一个属性, 用来获取当前代理的对象的original object
+            if (property === 'raw') {
+                return target;
+            }
+            const res = Reflect.get(target, property, receiver);
+            if (!isReadonly) {
+                track(target, property);
+            }
+
+            if (isShallow) return res;
+            // 将target函数封装，使得依赖收集和值的获取逻辑上分离
+
+            if (typeof res === 'object' && res !== null) {
+                return isReadonly ? readonly(res) : effective(res);
+            }
+            // effect应该是用户传进来的函数,那么名称不应该写死
+            // effectiveFunction && bucket.add(effectiveFunction);
+            return res;
+        },
+        set(target: Data, property: string, newVal: any, receiver): boolean {
+            const type = Object.prototype.hasOwnProperty.call(target, property)
+                ? triggerType.SET
+                : triggerType.ADD;
+
+            // original object === proxy pbject时, 执行赋值操作
+            // 这种情况适用于原型链中, 由原型引起的更新  详见test3.ts/
+            if (target === receiver.raw) {
+                let oldVal = target[property];
+
+                // 新旧值不相等才触发更新,后一个判断条件是为了避免NaN这种情况
+                if (
+                    oldVal !== newVal &&
+                    (oldVal === oldVal || newVal === newVal)
+                ) {
+                    Reflect.set(target, property, newVal, receiver);
+                    trigger(target, property, type);
+                }
+            }
+
+            // receiver可以理解成this, 需要手动传入, 保证在用户侧使用this时, 也是指向的代理对象
+            return true;
+        },
+        // in操作拦截
+        has(target, property) {
+            track(target, property);
+            return Reflect.has(target, property);
+        },
+
+        // for...in循环操作拦截
+        ownKeys(target) {
+            track(target, ITERATE_KEY);
+            return Reflect.ownKeys(target);
+        },
+        deleteProperty(target, property) {
+            const hadKey = Object.prototype.hasOwnProperty.call(
+                target,
+                property
+            );
+
+            const res = Reflect.deleteProperty(target, property);
+
+            if (hadKey && res) {
+                trigger(target, property, triggerType.DELETE);
+            }
+            return res;
+        },
+    });
+}
 
 export function track(target: object, property: string) {
     if (!effectiveFunction) return;
@@ -99,13 +166,11 @@ export function track(target: object, property: string) {
     effectiveFunction.deps.push(deps);
 }
 
-export function trigger(target: object, property: string) {
+export function trigger(target: object, property: string, type: string) {
     const depsMap = bucket.get(target); // Map
     if (!depsMap) return;
-    const effects = depsMap.get(property); // Set
 
-    const newEffects = new Set(effects);
-    newEffects.forEach((fn) => {
+    const asideFunction = (fn) => {
         // 避免a++在依赖函数里, 造成无线循环：在读取的时候，又给变量赋值
         if (effectiveFunction !== fn) {
             if (
@@ -117,6 +182,17 @@ export function trigger(target: object, property: string) {
                 (fn as EffectFn)();
             }
         }
-    });
+    };
+
+    const effects = depsMap.get(property); // Set
+    const newEffects = new Set(effects);
+    newEffects.forEach((fn) => asideFunction(fn));
+
+    if (type === triggerType.ADD || type === triggerType.DELETE) {
+        const iterateEffects = depsMap.get(ITERATE_KEY);
+        const newIterateEffects = new Set(iterateEffects);
+        newIterateEffects.forEach((fn) => asideFunction(fn));
+    }
+
     return true;
 }

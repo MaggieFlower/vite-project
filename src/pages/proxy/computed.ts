@@ -7,7 +7,6 @@ export function computed(fn: CmputedFn) {
     const effectFn = effect(fn, {
         lazy: true,
         scheduler() {
-            console.log('重置dirty');
             dirty = true;
             trigger(obj, 'value');
         },
@@ -15,7 +14,6 @@ export function computed(fn: CmputedFn) {
     const obj = {
         get value() {
             if (dirty) {
-                console.log('执行这里的');
                 cache = effectFn();
                 dirty = false;
             }
