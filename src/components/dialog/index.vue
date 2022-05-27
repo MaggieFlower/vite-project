@@ -1,17 +1,38 @@
 <template>
     <teleport to="body">
-        <section class="mg-dialog" v-if="modelValue">
+        <section class="mg-dialog" v-if="showDialog">
             <article class="mg-dialog-wrapper" :style="positionStyle">
                 <div class="mg-dialog-title-wrapper">
-                    <h5 class="mg-dialog--title">{{props.title}}</h5>
-                    <close-outlined class="mg-dialog-icon" @click="emits('update:modelValue', false)"/>
+                    <h5 class="mg-dialog--title">{{ props.title }}</h5>
+                    <close-outlined
+                        class="mg-dialog-icon"
+                        @click="
+                            () => {
+                                showDialog = false;
+                            }
+                        "
+                    />
                 </div>
                 <div class="mg-dialog--content">
-                    <slot>{{props.content}}</slot>
+                    <slot>{{ props.content }}</slot>
                 </div>
                 <nav class="mg-dialog-button">
-                    <button class="mg-dialog-button--cancel mg-dialog-button--public" @click="handleClick('cancel')">{{cancelText}}</button>
-                    <button class="mg-dialog-button--confirm mg-dialog-button--public" @click="handleClick('confirm')">{{confirmText}}</button>
+                    <button
+                        class="
+                            mg-dialog-button--cancel mg-dialog-button--public
+                        "
+                        @click="handleClick('cancel')"
+                    >
+                        {{ cancelText }}
+                    </button>
+                    <button
+                        class="
+                            mg-dialog-button--confirm mg-dialog-button--public
+                        "
+                        @click="handleClick('confirm')"
+                    >
+                        {{ confirmText }}
+                    </button>
                 </nav>
             </article>
         </section>
@@ -19,17 +40,16 @@
 </template>
 <script setup lang="ts">
 import { CloseOutlined } from '@ant-design/icons-vue';
-import {computed, PropType} from 'vue';
-import func from '../../../vue-temp/vue-editor-bridge';
-import {Positions} from './enum'
+import { computed, PropType, onMounted, ref, watch } from 'vue';
+import { Positions } from './enum';
 
 interface Props {
-    title?: string,
-    content?: string,
-    modelValue: boolean,
-    position?: Positions.TOP_RIGHT | Positions.TOP_LEFT | Positions.CENTER,
-    cancelText: string,
-    confirmText: string
+    title?: string;
+    content?: string;
+    modelValue: boolean;
+    position?: Positions.TOP_RIGHT | Positions.TOP_LEFT | Positions.CENTER;
+    cancelText?: string;
+    confirmText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,50 +58,65 @@ const props = withDefaults(defineProps<Props>(), {
     modelValue: false,
     position: Positions.TOP_RIGHT,
     cancelText: '取消',
-    confirmText: '确认'
+    confirmText: '确认',
 });
 
 const emits = defineEmits<{
-    (event: 'update:modelValue', value: boolean): void,
-    (event: 'close', value: string): void
+    (event: 'update:modelValue', value: boolean): void;
+    (event: 'close', value: string): void;
+    (event: 'open'): void;
 }>();
+const showDialog = ref();
 
-const handleClick = function handleClick(type:string) {
-    emits('update:modelValue', false);
+watch(
+    () => props.modelValue,
+    (val) => {
+        console.log('val: ', val);
+        showDialog.value = val;
+    },
+    {
+        immediate: true,
+    }
+);
+
+const handleClick = function handleClick(type: string) {
+    // console.log('props.modelValue: ', props.modelValue);
+    showDialog.value = false;
     emits('close', type);
-}
+    emits('update:modelValue', false);
+};
+
+onMounted(() => {
+    console.log('props: ', props);
+    emits('open');
+});
 
 const styleMap = {
     [Positions.TOP_RIGHT]: {
         top: '0px',
-        right: '0px'
+        right: '0px',
     },
     [Positions.TOP_LEFT]: {
         top: '0px',
-        left: '0px'
+        left: '0px',
     },
     [Positions.CENTER]: {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-    }
-}
+    },
+};
 const positionStyle = computed(() => {
-    const suffix = getPositionSuffix();
+    const suffix = getPositionSuffix(props.position);
     // ts严格检查undefined类型，可先做判断再调用suffix
-    return suffix ? styleMap[suffix] : {}
-})
+    return suffix ? styleMap[suffix] : {};
+});
 
-function getPositionSuffix() {
-    if (props.position.endsWith('right')) return 'top-right';
-    if (props.position.endsWith('left')) return 'top-left';
-    if (props.position.endsWith('center')) return 'center';
+function getPositionSuffix(position: string) {
+    if (position.endsWith('right')) return Positions.TOP_RIGHT;
+    if (position.endsWith('left')) return Positions.TOP_LEFT;
+    if (position.endsWith('center')) return Positions.CENTER;
 }
-
-
-
-
-
 </script>
 <style lang="scss">
 @import '@/styles/bem.scss';
@@ -89,7 +124,7 @@ function getPositionSuffix() {
 @include b('dialog') {
     width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,.2);
+    background: rgba(0, 0, 0, 0.2);
     position: fixed;
     top: 0px;
     right: 0px;
@@ -106,35 +141,32 @@ function getPositionSuffix() {
         border-radius: 4px;
         padding: 10px;
     }
-    &--content{
+    &--content {
         text-align: center;
-        margin-bottom: 40px;
     }
-    &-title-wrapper{
+    &-title-wrapper {
         display: flex;
         justify-content: space-between;
         align-items: center;
         height: 25px;
         line-height: 25px;
     }
-    &-button{
-        position: absolute;
-        bottom: 0;
-        right: 0px;
-        padding: 10px;
-        &--cancel{
+    &-button {
+        text-align: right;
+        padding-top: 10px;
+        &--cancel {
             margin-right: 10px;
         }
-        &--public{
+        &--public {
             border-style: none;
-            border: 1px solid rgba(0,0,0,.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 4px;
             padding: 8px 20px;
             line-height: 1;
-            color: rgba(0,0,0,1);
+            color: rgba(0, 0, 0, 1);
             background: #fff;
-            &:hover{
-                color: rgba(0,0,0,.7)
+            &:hover {
+                color: rgba(0, 0, 0, 0.7);
             }
         }
     }

@@ -30,7 +30,7 @@ const profile = computed(() => {
     return get(store.getters, 'user/userInfo');
 });
 
-async function action () {
+async function action() {
     if (get(profile.value, 'nickname')) {
         const res = await store.dispatch('user/logout');
         return;

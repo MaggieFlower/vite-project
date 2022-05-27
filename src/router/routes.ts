@@ -1,10 +1,16 @@
 import Home from '../pages/home/index.vue';
 import Marketing from '../pages/marketing/index.vue';
 import Login from '../pages/login/index.vue';
+import { RouteRecordRaw } from 'vue-router';
 
-export const routes = [
+// interface  extends用于有确认类型
+type RouteRecord = RouteRecordRaw & {
+    hidden?: boolean;
+};
+
+export const routes: RouteRecord[] = [
     {
-        path: '/',
+        path: '',
         name: 'root',
         redirect: '/marketing',
     },
@@ -40,5 +46,20 @@ export const routes = [
         name: 'form',
         // 异步加载必须加.vue后缀
         component: () => import('@/pages/mg-form/index.vue'),
+    },
+    {
+        path: '/tree',
+        name: 'mgTree',
+        component: () => import('@/pages/mg-tree/index.vue'),
+    },
+    {
+        path: '/vscroll',
+        name: 'virtual-scroll',
+        component: () => import('@/pages/virtual-scroll/index.vue'),
+    },
+    {
+        path: '/proxy',
+        name: 'proxy',
+        component: () => import('@/pages/proxy/index.vue'),
     },
 ];
