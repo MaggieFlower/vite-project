@@ -1,5 +1,5 @@
 /**
- * 此脚本包含深代理的测试
+ * 此用例包含深浅代理的测试
  */
 import { effective, effect } from './reactive.ts';
 const obj = { student: { name: 'maggie', age: '18', sex: 'female' } };

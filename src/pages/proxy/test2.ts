@@ -1,5 +1,5 @@
 /**
- * 本测试脚本包含in操作读取对象
+ * 本测试用例包含in操作读取对象
  */
 import { effective, effect } from './reactive.ts';
 type Data = {
