@@ -1,5 +1,5 @@
 /**
- * 本测试脚本包含proxy代理对象一般的独取操作、computed、watch、scheduler
+ * 本测试用例包含proxy代理对象一般的独取操作、computed、watch、scheduler
  */
 
 import { effect, effective } from './reactive';

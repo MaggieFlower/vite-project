@@ -1,5 +1,5 @@
 import { array } from 'vue-types';
-
+import { arrayInstrumentations, modifyArrayFunction } from './array';
 export type Effect = {
     (): void;
 };
@@ -27,6 +27,9 @@ let effectiveFunction: EffectFn;
 let effectStack: EffectFn[] = [];
 
 const ITERATE_KEY = Symbol();
+const shouldTrack = (method: string) => {
+    return !modifyArrayFunction.includes(method);
+};
 
 export function effect(fn: Effect, options?: Options) {
     const effectFn: EffectFn = () => {
@@ -70,10 +73,24 @@ function cleanup(effectFn: EffectFn) {
 }
 
 const bucket = new WeakMap();
+const effectiveProxyMap = new Map();
 
 const data: Data = { text: 'hello world', index: 1, name: 'maggie' };
 function readonly(obj: object, isShallow = false) {
     return effective(obj, isShallow, true);
+}
+export function createEffective(
+    obj: object,
+    isShallow = false,
+    isReadonly = false
+) {
+    // 缓存每个对象的 proxy 对象, 因为不缓存, 对象嵌套的情况在每次获取的时候,
+    // 都会去创建新的代理对象, 导致像include这样的值不准确
+    const exisitionProxy = effectiveProxyMap.get(obj);
+    if (exisitionProxy) return exisitionProxy;
+    const proxy = effective(obj, isShallow, isReadonly);
+    effectiveProxyMap.set(obj, proxy);
+    return proxy;
 }
 export function effective(obj: object, isShallow = false, isReadonly = false) {
     return new Proxy(obj, {
@@ -82,25 +99,35 @@ export function effective(obj: object, isShallow = false, isReadonly = false) {
             if (property === 'raw') {
                 return target;
             }
+
+            if (Array.isArray(target) && arrayInstrumentations[property]) {
+                return Reflect.get(arrayInstrumentations, property, receiver);
+            }
             const res = Reflect.get(target, property, receiver);
-            if (!isReadonly) {
+
+            // symbol 是数组使用for ... of 获取属性时会调用的 Symbol.iterator
+            if (!isReadonly && typeof property !== 'symbol') {
                 track(target, property);
             }
 
             if (isShallow) return res;
             // 将target函数封装，使得依赖收集和值的获取逻辑上分离
-
             if (typeof res === 'object' && res !== null) {
-                return isReadonly ? readonly(res) : effective(res);
+                return isReadonly ? readonly(res) : createEffective(res);
             }
             // effect应该是用户传进来的函数,那么名称不应该写死
             // effectiveFunction && bucket.add(effectiveFunction);
             return res;
         },
-        set(target: Data, property: string, newVal: any, receiver): boolean {
+        set(target: Data, property: string, newVal: any, receiver): any {
+            // debugger;
+            let res;
+            // 数组复用这一段, 未像书中所说给数组单独增加一个判断条件
             const type = Object.prototype.hasOwnProperty.call(target, property)
                 ? triggerType.SET
                 : triggerType.ADD;
+
+            res = Reflect.set(target, property, newVal, receiver);
 
             // original object === proxy pbject时, 执行赋值操作
             // 这种情况适用于原型链中, 由原型引起的更新  详见test3.ts/
@@ -112,13 +139,12 @@ export function effective(obj: object, isShallow = false, isReadonly = false) {
                     oldVal !== newVal &&
                     (oldVal === oldVal || newVal === newVal)
                 ) {
-                    Reflect.set(target, property, newVal, receiver);
-                    trigger(target, property, type);
+                    trigger(target, property, type, newVal);
                 }
             }
 
             // receiver可以理解成this, 需要手动传入, 保证在用户侧使用this时, 也是指向的代理对象
-            return true;
+            return res;
         },
         // in操作拦截
         has(target, property) {
@@ -128,7 +154,7 @@ export function effective(obj: object, isShallow = false, isReadonly = false) {
 
         // for...in循环操作拦截
         ownKeys(target) {
-            track(target, ITERATE_KEY);
+            track(target, Array.isArray(target) ? 'length' : ITERATE_KEY);
             return Reflect.ownKeys(target);
         },
         deleteProperty(target, property) {
@@ -148,6 +174,7 @@ export function effective(obj: object, isShallow = false, isReadonly = false) {
 }
 
 export function track(target: object, property: string) {
+    if (Array.isArray(target) && shouldTrack(property)) return;
     if (!effectiveFunction) return;
 
     // 将需要使用响应数据的data存起来，value是一个Map，用来存储其属性对应的effect函数
@@ -166,9 +193,42 @@ export function track(target: object, property: string) {
     effectiveFunction.deps.push(deps);
 }
 
-export function trigger(target: object, property: string, type: string) {
+export function trigger(
+    target: object,
+    property: string,
+    type: string,
+    newVal?: any
+) {
     const depsMap = bucket.get(target); // Map
     if (!depsMap) return;
+
+    const effects = depsMap.get(property); // Set
+    const newEffects = new Set();
+    const add = (fn) => {
+        newEffects.add(fn);
+    };
+
+    effects && effects.forEach(add);
+    if (Array.isArray(target)) {
+        // 针对直接对length赋值的情况
+        if (property === 'length') {
+            depsMap.forEach((effect, key) => {
+                if (key >= newVal) {
+                    effect.forEach(add);
+                }
+            });
+        }
+        if (type === triggerType.ADD) {
+            // effect中使用length来读取数组的长度, effect外使用超过数组长度的角标来赋值参见test5中的列子
+            const lengthEffects = depsMap.get('length');
+            lengthEffects && lengthEffects.forEach(add);
+        }
+    }
+    if (type === triggerType.ADD || type === triggerType.DELETE) {
+        // for ... in 遍历读取数据的时候使用
+        const iterateEffects = depsMap.get(ITERATE_KEY);
+        iterateEffects && iterateEffects.forEach(add);
+    }
 
     const asideFunction = (fn) => {
         // 避免a++在依赖函数里, 造成无线循环：在读取的时候，又给变量赋值
@@ -183,16 +243,7 @@ export function trigger(target: object, property: string, type: string) {
             }
         }
     };
-
-    const effects = depsMap.get(property); // Set
-    const newEffects = new Set(effects);
-    newEffects.forEach((fn) => asideFunction(fn));
-
-    if (type === triggerType.ADD || type === triggerType.DELETE) {
-        const iterateEffects = depsMap.get(ITERATE_KEY);
-        const newIterateEffects = new Set(iterateEffects);
-        newIterateEffects.forEach((fn) => asideFunction(fn));
-    }
+    newEffects && newEffects.forEach((fn) => asideFunction(fn));
 
     return true;
 }
