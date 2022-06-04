@@ -12,7 +12,7 @@
 <script setup lang="ts">
 // import './test2.ts';
 // import './test4.ts';
-import './test5.ts';
+import './ref-test.ts';
 // import { handleInputEvent, handleValue } from './test1.ts';
 // import { onMounted } from '@vue/runtime-core';
 // import { effect } from './reactive';

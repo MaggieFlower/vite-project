@@ -62,4 +62,9 @@ export const routes: RouteRecord[] = [
         name: 'proxy',
         component: () => import('@/pages/proxy/index.vue'),
     },
+    {
+        path: '/render',
+        name: 'render',
+        component: () => import('@/pages/render/index.vue')
+    }
 ];

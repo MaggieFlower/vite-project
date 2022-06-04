@@ -1,5 +1,8 @@
 import { array } from 'vue-types';
+import tree from '../../components/tree';
 import { arrayInstrumentations, modifyArrayFunction } from './array';
+import { proxyRefs } from './ref'
+
 export type Effect = {
     (): void;
 };
@@ -50,8 +53,8 @@ export function effect(fn: Effect, options?: Options) {
 
         // 2022-5-25 10:30 不要也没发现什么问题,将栈顶最新的依赖函数复制给effectiveFunction
         effectiveFunction = effectStack[effectStack.length - 1];
-        // 2022-5-25 11:45 不要上面这一句发现了bug: 更新数据的时候无法触发依赖函数的执行,
-        // 依赖函数的执行, 需要判断当前的依赖函数,跟执行的函数不是同一个
+        // 2022-5-25 11:45 不要上面这一句发现了bug: 嵌套的函数，更新数据的时候无法触发依赖函数的执行,
+        // 因为「依赖函数」的执行, 需要判断当前的依赖函数,跟执行的函数不是同一个
 
         return res;
     };
@@ -85,25 +88,29 @@ export function createEffective(
     isReadonly = false
 ) {
     // 缓存每个对象的 proxy 对象, 因为不缓存, 对象嵌套的情况在每次获取的时候,
-    // 都会去创建新的代理对象, 导致像include这样的值不准确
+    // 都会去创建新的代理对象, 导致像includes这样的函数取值不准确
     const exisitionProxy = effectiveProxyMap.get(obj);
     if (exisitionProxy) return exisitionProxy;
     const proxy = effective(obj, isShallow, isReadonly);
+    // const proxyAlias = proxyRefs(proxy);
     effectiveProxyMap.set(obj, proxy);
     return proxy;
 }
 export function effective(obj: object, isShallow = false, isReadonly = false) {
     return new Proxy(obj, {
         get(target: object, property: string, receiver) {
+            const res = Reflect.get(target, property, receiver);
+
             // 增加一个属性, 用来获取当前代理的对象的original object
             if (property === 'raw') {
                 return target;
             }
 
+
             if (Array.isArray(target) && arrayInstrumentations[property]) {
                 return Reflect.get(arrayInstrumentations, property, receiver);
             }
-            const res = Reflect.get(target, property, receiver);
+
 
             // symbol 是数组使用for ... of 获取属性时会调用的 Symbol.iterator
             if (!isReadonly && typeof property !== 'symbol') {
@@ -120,19 +127,18 @@ export function effective(obj: object, isShallow = false, isReadonly = false) {
             return res;
         },
         set(target: Data, property: string, newVal: any, receiver): any {
-            // debugger;
             let res;
             // 数组复用这一段, 未像书中所说给数组单独增加一个判断条件
             const type = Object.prototype.hasOwnProperty.call(target, property)
                 ? triggerType.SET
                 : triggerType.ADD;
+            let oldVal = target[property];
 
             res = Reflect.set(target, property, newVal, receiver);
 
             // original object === proxy pbject时, 执行赋值操作
             // 这种情况适用于原型链中, 由原型引起的更新  详见test3.ts/
             if (target === receiver.raw) {
-                let oldVal = target[property];
 
                 // 新旧值不相等才触发更新,后一个判断条件是为了避免NaN这种情况
                 if (

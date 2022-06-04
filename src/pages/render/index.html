@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <section id="render"></section>
+</body>
+<script src="./renderer.js"></script>
+<script>
+const renderer = createRenderer({
+    createElement(tag) {
+        return document.createElement(tag);
+    },
+    setElementText(el, text) {
+        el.innerText = text;
+    },
+    insert(parent, child, anchor=null) {
+        parent.insertBefore(child, anchor)
+    },
+    createText(content) {
+        return document.createTextNode(content)
+    },
+    setText(el, text) {
+        el.nodeValue = text;
+    },
+    patchProps(el, key, prevValue, nextValue) {
+        const type = typeof el[key];
+        const value = nextValue;
+
+        if (/^on/.test(key)) {
+            const invokers = el._vei || (el._vei = {});
+            let invoker = invokers[key];
+            if (nextValue){
+                const eventName = key.slice(2).toLowerCase();
+                if (!invoker) {
+                    invoker = el._vei[key] =(e) => {
+                        // 事件触发时间比绑定时间早， 则不执行
+                        // 事件委托，并且事件绑定依赖响应式数据创建的时候，需要排除由于数据更新进而触发的事件执行
+                        if (e.timeStamp < invoker.attached) return;
+                        if (Array.isArray(invoker.value)) {
+                            invoker.value.forEach(fn => fn(e));
+                        } else {
+                            invoker.value(e)
+                        }
+                    };
+                    invoker.value = nextValue;
+                    invoker.attached = performance.now();
+                    el.addEventListener(eventName, invoker)
+                } else{
+                    invoker.value = nextValue;
+                }
+            // nextValue 不存在， 但是 invoker 存在，说明这个事件需要被删除
+            } else if (invoker){
+                el.removeEventListener(eventName, invoker)
+            }
+        } else if (key in el) {
+            // 有些属性虽然在el中， 但是属性是只读的, 不能用js来设置值
+            // TODO: 单独列出不能被js来设置的属性
+            if (type === 'boolean' && value === '') {
+                el[key] = true;
+            } else {
+                el[key] = nextValue
+            }
+        } else {
+            el.setAttribute(key, value);
+        }
+    }
+});
+let eventTest = null;
+renderer.render(
+    {
+        type: 'div',
+        children: [
+            {
+                type: 'p',
+                props: {
+                    onclick(e) {
+                        eventTest = e;
+                        console.log(e)
+                        console.log('子元素被点击了')
+                    },
+                    style: "color:red"
+                },
+                children: [{
+                    type: 'span',
+                    children: "i'm a span"
+                }]
+            }
+        ],
+        props: {
+            onclick(e) {
+                console.log(e === eventTest)
+                console.log('父元素被点击了')
+            },
+            'name': 'maggie'
+        }
+    },
+    document.querySelector('#render')
+);
+renderer.render(
+    {
+            type: Fragment,
+            children: [
+                {type: 'li', children: '1'},
+                {type: 'div', children: '2'},
+                {type: 'li', children: '3'}
+            ]
+    },
+    document.querySelector('#render')
+)
+</script>
+</html>
