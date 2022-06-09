@@ -8,6 +8,7 @@
 </head>
 <body>
     <section id="render"></section>
+    <section id="fragment"></section>
 </body>
 <script src="./renderer.js"></script>
 <script>
@@ -71,8 +72,8 @@ const renderer = createRenderer({
     }
 });
 let eventTest = null;
-renderer.render(
-    {
+
+const oldVnode = {
         type: 'div',
         children: [
             {
@@ -86,9 +87,22 @@ renderer.render(
                     style: "color:red"
                 },
                 children: [{
-                    type: 'span',
-                    children: "i'm a span"
-                }]
+                type: 'span',
+                children: "7",
+                key: 3
+            },{
+                type: 'div',
+                children: "8",
+                key: 2
+            },{
+                type: 'p',
+                children: "9",
+                key: 1
+            }, {
+                type: 'p',
+                children: "10",
+                key: 4
+            }]
             }
         ],
         props: {
@@ -98,19 +112,65 @@ renderer.render(
             },
             'name': 'maggie'
         }
-    },
+};
+const newVnode = {
+    type: 'div',
+    children: [
+        {
+            type: 'p',
+            props: {
+                onclick(e) {
+                    eventTest = e;
+                    console.log(e)
+                    console.log('子元素被点击了')
+                },
+                style: "color:red"
+            },
+            children: [{
+                type: 'p',
+                children: "9",
+                key: 1
+            },{
+                type: 'div',
+                children: "8",
+                key: 2
+            },{
+                type: 'div',
+                children: "110",
+                key: 11
+            }, {
+                type: 'p',
+                children: "10",
+                key: 4
+            }]
+        }
+    ],
+    props: {
+        onclick(e) {
+            console.log(e === eventTest)
+            console.log('父元素被点击了')
+        },
+        'name': 'maggie'
+    }
+}
+renderer.render(
+    oldVnode,
     document.querySelector('#render')
 );
-renderer.render(
-    {
-            type: Fragment,
-            children: [
-                {type: 'li', children: '1'},
-                {type: 'div', children: '2'},
-                {type: 'li', children: '3'}
-            ]
-    },
+
+setTimeout(() => {
+    renderer.render(
+    newVnode,
     document.querySelector('#render')
-)
+);
+},1000)
+
+// renderer.render({
+//     type: Fragment,
+//     children:[{
+//         type: 'li',
+//         children: '1111'
+//     }]
+// }, document.querySelector('#fragment'))
 </script>
 </html>
