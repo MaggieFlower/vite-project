@@ -138,6 +138,7 @@ export function effective(obj: object, isShallow = false, isReadonly = false) {
 
             // original object === proxy pbject时, 执行赋值操作
             // 这种情况适用于原型链中, 由原型引起的更新  详见test3.ts/
+            // 原型形中没有的属性，赋值的时候，也会先去读去父
             if (target === receiver.raw) {
 
                 // 新旧值不相等才触发更新,后一个判断条件是为了避免NaN这种情况

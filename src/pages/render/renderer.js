@@ -234,6 +234,8 @@ function createRenderer (options = {}) {
     }
 
     function bothSidesDiff (n1, n2, container) {
+        // 双端算法存在的缺陷是：无论前后的节点是不是相等，都要做四次对比
+        // 双端算法是以旧节点为参考点的，并不是以新节点，因为新节点不一定都有复用的 el
         const oldChildren = n1.children;
         const newChildren = n2.children;
         let oldStartChildIndex = 0;
@@ -306,6 +308,7 @@ function createRenderer (options = {}) {
 
     function fastDiff (n1, n2, container) {
         // 快速 diff 算法会有预处理的过程：即先把首位相同的元素处理了，再处理不相同的元素
+        // 快速 diff 算法结合了简单算法和双端算法
         let j = 0;
         const oldChildren = n1.children;
         const newChildren = n2.children;
@@ -361,7 +364,7 @@ function createRenderer (options = {}) {
             }
         } else{
             // 不满足预处理条件
-            // 创建 source 存储新节点在旧节点中的索引, 长度就是未遍历完的元素的长度
+            // 创建 source 存储新节点在旧节点中的索引, 长度就是未遍历完的元素
             const length = newEnd - j +1;
             const source = new Array(length);
             source.fill(-1);
@@ -396,7 +399,7 @@ function createRenderer (options = {}) {
                     if (typeof index !== 'undefined') {
                         patch(oldVNode, newChildren[index], container);
                         patched ++;
-                        // 索引应该是 从 0 开始，因此需要减去起始值 j
+                        // 索引应该是 从 0 开始，因此需要减去起始值 newStart
                         source[index - newStart] = k;
 
                         // 旧节点在新的数组中呈逆序，则需要移动旧节点的位置来达到新节点在数组中的位置
@@ -406,6 +409,7 @@ function createRenderer (options = {}) {
                             pos = index;
                         }
                     } else {
+                        // 旧节点在新节点中找不到，需要删除
                         unmount(oldVNode);
                     }
                 } else {
@@ -416,10 +420,13 @@ function createRenderer (options = {}) {
             }
 
             if (toMove) {
+                // 找出最长递增子序列，在这个序列中的索引都不需要移动
+                // lis 是 longest increament supsequence
+                // lisArr 里面存的是 source 中不需要移动的索引，不是存的值
                 const lisArr = lis(source);
-                let i =0; s = lisArr.length - 1;
-                // 逆序循环， 把新节点先插入
-                for (i = source.length - 1; i >= 0; i--) {
+                let i = source.length - 1; s = lisArr.length - 1;
+                // 逆序循环， 把新节点先插入，顺序循环会出现后面的子节点是新节点，无法找到他的 el 的情况
+                for (i; i >= 0; i--) {
                     if (source[i] === -1) {
                         const index =  i + j;
                         const anchor = newChildren[index + 1] ? newChildren[index + 1].el : null;
